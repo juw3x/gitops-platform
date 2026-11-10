@@ -12,9 +12,12 @@
 
 ## Доступы
 
+- **Git-репозиторий (GitOps source)**: `git@github.com:juw3x/gitops-platform.git` —
+  Argo CD repo-server клонирует его по SSH через deploy key (secret `repo-juw3x-gitops-platform` в ns `argocd`,
+  ключ `~/.ssh/argocd-github`, скрипт `scripts/setup-github-repo.sh`)
 - Argo CD UI: https://localhost:8081 (self-signed), логин `admin`, пароль — в секрете:
   `kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath='{.data.password}' | base64 -d`
-- Git-репозиторий: `git://172.24.0.1:9418/gitops-platform` (git daemon, 172.24.0.1 — gateway kind-сети)
+- Fallback: локальный `git daemon` на `git://172.24.0.1:9418/gitops-platform` (172.24.0.1 — gateway kind-сети)
 
 ## Запуск (в WSL Ubuntu)
 
@@ -22,9 +25,6 @@
 kind create cluster --name gitops
 kubectl create namespace argocd
 kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
-
-# git-сервер для репозитория ( setsid — чтобы не умер вместе с shell )
-setsid nohup git daemon --export-all --base-path=$HOME --listen=0.0.0.0 --port=9418 --reuseaddr > ~/git-daemon.log 2>&1 < /dev/null &
 
 # port-forward к Argo CD UI
 setsid nohup kubectl -n argocd port-forward svc/argocd-server 8081:443 >/tmp/pf.log 2>&1 < /dev/null &
