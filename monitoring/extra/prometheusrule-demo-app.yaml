@@ -1,0 +1,51 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: demo-app-alerts
+  namespace: monitoring
+  labels:
+    release: monitoring
+    app.kubernetes.io/instance: monitoring
+spec:
+  groups:
+    - name: demo-app.rules
+      rules:
+        - alert: DemoAppDown
+          expr: kube_deployment_status_replicas_available{deployment=~"demo-app.*"} == 0
+          for: 2m
+          labels:
+            severity: critical
+          annotations:
+            summary: "Demo app {{ $labels.namespace }}/{{ $labels.deployment }} has no available replicas"
+        - alert: DemoAppReplicasMismatch
+          expr: |
+            kube_deployment_status_replicas_available{deployment=~"demo-app.*"}
+            < kube_deployment_spec_replicas{deployment=~"demo-app.*"}
+          for: 5m
+          labels:
+            severity: warning
+          annotations:
+            summary: "Demo app {{ $labels.namespace }}/{{ $labels.deployment }} has fewer available replicas than desired"
+        - alert: HighPodRestartRate
+          expr: increase(kube_pod_container_status_restarts_total[15m]) > 3
+          for: 5m
+          labels:
+            severity: warning
+          annotations:
+            summary: "Pod {{ $labels.namespace }}/{{ $labels.pod }} is restarting frequently"
+        - alert: NodeDiskAlmostFull
+          expr: |
+            (node_filesystem_avail_bytes{fstype!~"tmpfs|overlay"}
+            / node_filesystem_size_bytes{fstype!~"tmpfs|overlay"}) < 0.15
+          for: 10m
+          labels:
+            severity: warning
+          annotations:
+            summary: "Node {{ $labels.instance }} filesystem {{ $labels.mountpoint }} is over 85% full"
+        - alert: NodeMemoryPressure
+          expr: (1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) > 0.9
+          for: 10m
+          labels:
+            severity: warning
+          annotations:
+            summary: "Node {{ $labels.instance }} memory usage above 90%"
