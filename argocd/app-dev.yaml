@@ -6,7 +6,7 @@ metadata:
 spec:
   project: default
   source:
-    repoURL: git://172.24.0.1:9418/gitops-platform.git
+    repoURL: git://172.24.0.1:9418/gitops-platform
     targetRevision: HEAD
     path: apps/demo-app/overlays/dev
   destination:

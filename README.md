@@ -19,6 +19,7 @@ kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath='{.data.pas
 
 # git-сервер для репозитория (из корня репо):
 git daemon --export-all --base-path=$HOME --listen=0.0.0.0 --port=9418 &
+# URL репозитория: git://172.24.0.1:9418/gitops-platform (без .git, 172.24.0.1 — gateway kind-сети)
 
 kubectl apply -f argocd/app-dev.yaml -f argocd/app-prod.yaml
 kubectl -n argocd port-forward svc/argocd-server 8080:443
